@@ -1,0 +1,49 @@
+import { useState } from 'react';
+import axios from 'axios';
+
+function App() {
+  const [aadhaar, setAadhaar] = useState(null);
+  const [selfie, setSelfie] = useState(null);
+  const [result, setResult] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const form = new FormData();
+    form.append('aadhaar', aadhaar);
+    form.append('selfie', selfie);
+
+    try {
+      const res = await axios.post('http://localhost:5000/api/verify', form);
+      setResult(res.data);
+    } catch (err) {
+      setResult({ error: err.response?.data?.error || "Unknown error" });
+    }
+  };
+
+  return (
+    <div style={{ padding: 40 }}>
+      <h2>Aadhaar Face Verification</h2>
+      <form onSubmit={handleSubmit}>
+        <input type="file" onChange={(e) => setAadhaar(e.target.files[0])} />
+        <br /><br />
+        <input type="file" onChange={(e) => setSelfie(e.target.files[0])} />
+        <br /><br />
+        <button type="submit">Verify</button>
+      </form>
+
+      {result && (
+        <div style={{ marginTop: 20 }}>
+          {result.error ? (
+            <p style={{ color: 'red' }}>❌ {result.error}</p>
+          ) : result.match ? (
+            <p style={{ color: 'green' }}>✅ Match Found! Confidence: {result.confidence}%</p>
+          ) : (
+            <p style={{ color: 'orange' }}>⚠️ No Match. Confidence: {result.confidence}%</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;
